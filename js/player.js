@@ -18,6 +18,7 @@ const Player = {
         this.audio = document.getElementById('audioPlayer');
         this.audio.volume = this.volume;
         this.setVolumeUI(this.volume);
+        this.updatePlayButton();
         this.bindEvents();
     },
 
@@ -35,7 +36,7 @@ const Player = {
         audio.addEventListener('ended', () => {
             if (this.repeatMode === 'one') {
                 audio.currentTime = 0;
-                audio.play();
+                audio.play().catch(() => {});
             } else {
                 this.next();
             }
@@ -338,6 +339,9 @@ const Player = {
     },
 
     updatePlayButton() {
+        const btn = document.getElementById('btnPlay');
+        const hasSong = !!this.currentSong;
+        btn.disabled = !hasSong;
         document.getElementById('iconPlay').style.display = this.isPlaying ? 'none' : 'block';
         document.getElementById('iconPause').style.display = this.isPlaying ? 'block' : 'none';
     },

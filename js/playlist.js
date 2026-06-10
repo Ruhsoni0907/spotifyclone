@@ -4,12 +4,18 @@ const Playlist = {
     nextId: 1,
 
     init() {
-        const saved = localStorage.getItem('spotify-clone-playlists');
-        if (saved) {
-            const data = JSON.parse(saved);
-            this.userPlaylists = data.playlists || [];
-            this.likedSongs = data.liked || [];
-            this.nextId = data.nextId || 1;
+        try {
+            const saved = localStorage.getItem('spotify-clone-playlists');
+            if (saved) {
+                const data = JSON.parse(saved);
+                this.userPlaylists = Array.isArray(data.playlists) ? data.playlists : [];
+                this.likedSongs = Array.isArray(data.liked) ? data.liked : [];
+                this.nextId = typeof data.nextId === 'number' ? data.nextId : 1;
+            }
+        } catch (e) {
+            this.userPlaylists = [];
+            this.likedSongs = [];
+            this.nextId = 1;
         }
 
         document.getElementById('btnCreatePlaylist').addEventListener('click', () => this.showCreateModal());
@@ -37,11 +43,13 @@ const Playlist = {
     },
 
     save() {
-        localStorage.setItem('spotify-clone-playlists', JSON.stringify({
-            playlists: this.userPlaylists,
-            liked: this.likedSongs,
-            nextId: this.nextId
-        }));
+        try {
+            localStorage.setItem('spotify-clone-playlists', JSON.stringify({
+                playlists: this.userPlaylists,
+                liked: this.likedSongs,
+                nextId: this.nextId
+            }));
+        } catch (e) {}
     },
 
     showCreateModal() {
@@ -91,6 +99,24 @@ const Playlist = {
         App.navigate('home');
     },
 
+    showDeleteConfirm(playlistName, onConfirm) {
+        UI.showModal('Delete Playlist', `
+            <p style="color:var(--text-subdued);margin-bottom:16px;">Are you sure you want to delete "${escapeHTML(playlistName)}"?</p>
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+                <button class="btn-modal" id="btnCancelDelete" style="background:var(--bg-surface);color:var(--text-base);">Cancel</button>
+                <button class="btn-modal btn-modal-primary" id="btnConfirmDelete" style="background:#e8115b;">Delete</button>
+            </div>
+        `);
+
+        setTimeout(() => {
+            document.getElementById('btnCancelDelete').addEventListener('click', () => UI.hideModal());
+            document.getElementById('btnConfirmDelete').addEventListener('click', () => {
+                UI.hideModal();
+                onConfirm();
+            });
+        }, 50);
+    },
+
     addToPlaylist(playlistId, songId) {
         const playlist = this.userPlaylists.find(p => p.id === playlistId);
         if (!playlist) return;
@@ -123,9 +149,10 @@ const Playlist = {
         this.save();
 
         const isLiked = this.likedSongs.includes(songId);
-        document.querySelectorAll('.btn-like-small, .btn-like-large').forEach(btn => {
-            btn.classList.toggle('liked', isLiked);
-        });
+        if (Player.currentSong && Player.currentSong.id === songId) {
+            document.getElementById('playerLike').classList.toggle('liked', isLiked);
+            document.getElementById('btnLikeLarge').classList.toggle('liked', isLiked);
+        }
 
         this.renderSidebar();
     },
@@ -189,8 +216,8 @@ const Playlist = {
                 </div>
                 <div class="playlist-header-info">
                     <div class="playlist-header-type">Playlist</div>
-                    <h1 class="playlist-header-name">${playlist.name}</h1>
-                    ${playlist.description ? `<div class="playlist-header-desc">${playlist.description}</div>` : ''}
+                    <h1 class="playlist-header-name">${escapeHTML(playlist.name)}</h1>
+                    ${playlist.description ? `<div class="playlist-header-desc">${escapeHTML(playlist.description)}</div>` : ''}
                     <div class="playlist-header-meta">${songs.length} songs \u2022 ${formatDuration(songs.reduce((a, s) => a + s.duration, 0))}</div>
                 </div>
             </div>
@@ -209,7 +236,7 @@ const Playlist = {
         `;
 
         if (songs.length > 0) {
-            html += `<div class="song-row" style="pointer-events:none;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:4px;"><div class="song-row-index">#</div><div class="song-row-info" style="margin-left:8px;">TITLE</div><div class="song-row-album">ALBUM</div><div class="song-row-duration">\u23F1</div></div>`;
+            html += `<div class="song-table-header"><div class="song-row" style="pointer-events:none;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:4px;"><div class="song-row-index">#</div><div class="song-row-info" style="margin-left:8px;">TITLE</div><div class="song-row-album">ALBUM</div><div class="song-row-duration">\u23F1</div></div></div>`;
             songs.forEach((song, i) => {
                 html += UI.renderSongRow(song, i);
             });
@@ -227,9 +254,7 @@ const Playlist = {
         const deleteBtn = document.getElementById('btnDeletePlaylist');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => {
-                if (confirm(`Delete "${playlist.name}"?`)) {
-                    this.deletePlaylist(id);
-                }
+                this.showDeleteConfirm(playlist.name, () => this.deletePlaylist(id));
             });
         }
 
@@ -252,7 +277,7 @@ const Playlist = {
             <div class="playlist-item" data-playlist-id="${p.id}" style="cursor:pointer;">
                 <div class="playlist-item-thumb" style="background:${p.color}">♫</div>
                 <div class="playlist-item-info">
-                    <div class="playlist-item-name">${p.name}</div>
+                    <div class="playlist-item-name">${escapeHTML(p.name)}</div>
                     <div class="playlist-item-meta">${p.songs.length} songs</div>
                 </div>
             </div>

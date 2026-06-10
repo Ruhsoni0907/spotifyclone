@@ -1,3 +1,10 @@
+function escapeHTML(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 const SONGS = [
     { id: 's1', title: 'Midnight Dreams', artist: 'Luna Wave', album: 'Nocturnal', duration: 234, file: 'music/sample1.mp3', genre: 'Pop', color: '#e8115b' },
     { id: 's2', title: 'Electric Soul', artist: 'Neon Pulse', album: 'Circuit', duration: 198, file: 'music/sample2.mp3', genre: 'Electronic', color: '#1DB954' },
@@ -66,19 +73,26 @@ let uploadedSongs = [];
 let uploadedSongNextId = 100;
 
 function loadUploadedSongs() {
-    const saved = localStorage.getItem('spotify-clone-uploaded');
-    if (saved) {
-        const data = JSON.parse(saved);
-        uploadedSongs = data.songs || [];
-        uploadedSongNextId = data.nextId || 100;
+    try {
+        const saved = localStorage.getItem('spotify-clone-uploaded');
+        if (saved) {
+            const data = JSON.parse(saved);
+            uploadedSongs = Array.isArray(data.songs) ? data.songs : [];
+            uploadedSongNextId = typeof data.nextId === 'number' ? data.nextId : 100;
+        }
+    } catch (e) {
+        uploadedSongs = [];
+        uploadedSongNextId = 100;
     }
 }
 
 function saveUploadedSongs() {
-    localStorage.setItem('spotify-clone-uploaded', JSON.stringify({
-        songs: uploadedSongs,
-        nextId: uploadedSongNextId
-    }));
+    try {
+        localStorage.setItem('spotify-clone-uploaded', JSON.stringify({
+            songs: uploadedSongs,
+            nextId: uploadedSongNextId
+        }));
+    } catch (e) {}
 }
 
 function addUploadedSong(songData) {
@@ -109,8 +123,21 @@ function removeUploadedSong(id) {
     saveUploadedSongs();
 }
 
+let _allSongsCache = null;
+let _allSongsCacheLength = 0;
+
 function getAllSongs() {
-    return [...SONGS, ...uploadedSongs];
+    if (_allSongsCache && _allSongsCacheLength === SONGS.length + uploadedSongs.length) {
+        return _allSongsCache;
+    }
+    _allSongsCache = [...SONGS, ...uploadedSongs];
+    _allSongsCacheLength = _allSongsCache.length;
+    return _allSongsCache;
+}
+
+function invalidateSongCache() {
+    _allSongsCache = null;
+    _allSongsCacheLength = 0;
 }
 
 function getSong(id) {

@@ -13,7 +13,7 @@ const UI = {
                 <div class="quick-pick-thumb" style="background:${playlist.color}">
                     <span style="font-size:22px;">♫</span>
                 </div>
-                <span class="quick-pick-name">${playlist.name}</span>
+                <span class="quick-pick-name">${escapeHTML(playlist.name)}</span>
             </div>
         `;
     },
@@ -28,8 +28,8 @@ const UI = {
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7.05 3.606l13.49 7.788a.7.7 0 010 1.212L7.05 20.394A.7.7 0 016 19.788V4.212a.7.7 0 011.05-.606z"/></svg>
                     </button>
                 </div>
-                <div class="card-title">${item.name}</div>
-                <div class="card-subtitle">${subtitle}</div>
+                <div class="card-title">${escapeHTML(item.name)}</div>
+                <div class="card-subtitle">${escapeHTML(subtitle)}</div>
             </div>
         `;
     },
@@ -44,11 +44,11 @@ const UI = {
                 <div class="song-row-info">
                     <div class="song-row-thumb" style="background:${song.color}">♫</div>
                     <div class="song-row-text">
-                        <div class="song-row-title">${song.title}</div>
-                        <div class="song-row-artist">${song.artist}</div>
+                        <div class="song-row-title">${escapeHTML(song.title)}</div>
+                        <div class="song-row-artist">${escapeHTML(song.artist)}</div>
                     </div>
                 </div>
-                <div class="song-row-album">${song.album}</div>
+                <div class="song-row-album">${escapeHTML(song.album)}</div>
                 <div class="song-row-duration">${formatDuration(song.duration)}</div>
             </div>
         `;
@@ -59,7 +59,7 @@ const UI = {
             <li class="playlist-item ${isActive ? 'active' : ''}" data-action="open-playlist" data-id="${playlist.id}">
                 <div class="playlist-item-thumb" style="background:${playlist.color}">♫</div>
                 <div class="playlist-item-info">
-                    <div class="playlist-item-name">${playlist.name}</div>
+                    <div class="playlist-item-name">${escapeHTML(playlist.name)}</div>
                     <div class="playlist-item-meta">${playlist.songs.length} songs</div>
                 </div>
             </li>
@@ -69,7 +69,7 @@ const UI = {
     renderCategoryCard(category) {
         return `
             <div class="category-card" style="background:${category.color}" data-action="browse-category" data-id="${category.id}">
-                ${category.name}
+                ${escapeHTML(category.name)}
             </div>
         `;
     },

@@ -144,7 +144,7 @@ const App = {
                 </div>
                 <div class="playlist-header-info">
                     <div class="playlist-header-type">Artist</div>
-                    <h1 class="playlist-header-name">${artistName}</h1>
+                    <h1 class="playlist-header-name">${escapeHTML(artistName)}</h1>
                     <div class="playlist-header-meta">${songs.length} songs</div>
                 </div>
             </div>
@@ -166,6 +166,7 @@ const App = {
 
     handleRemoveUploaded(songId) {
         removeUploadedSong(songId);
+        invalidateSongCache();
         if (Player.currentSong && Player.currentSong.id === songId) {
             Player.audio.pause();
             Player.currentSong = null;
@@ -199,12 +200,16 @@ const App = {
 
         document.getElementById('searchBarContainer').style.display = view === 'search' ? 'block' : 'none';
 
+        document.getElementById('contentScroll').scrollTop = 0;
+
         switch (view) {
             case 'home': this.renderHome(); break;
             case 'search': if (!document.getElementById('globalSearch').value) this.renderSearch(); break;
             case 'playlist': Playlist.openPlaylist(id); break;
             case 'album': this.openAlbum(id); break;
             case 'uploads': this.renderUploads(); break;
+            case 'category': Search.renderCategory(id); break;
+            default: this.renderHome(); break;
         }
 
         Playlist.renderSidebar();
@@ -311,7 +316,7 @@ const App = {
         `;
 
         if (uploadedSongs.length > 0) {
-            html += `<div class="song-row" style="pointer-events:none;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:4px;"><div class="song-row-index">#</div><div class="song-row-info" style="margin-left:8px;">TITLE</div><div class="song-row-album">ALBUM</div><div class="song-row-duration">⏱</div><div class="song-row-actions"></div></div>`;
+            html += `<div class="song-table-header"><div class="song-row" style="pointer-events:none;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:4px;"><div class="song-row-index">#</div><div class="song-row-info" style="margin-left:8px;">TITLE</div><div class="song-row-album">ALBUM</div><div class="song-row-duration">⏱</div><div class="song-row-actions"></div></div></div>`;
             uploadedSongs.forEach((song, i) => {
                 const isPlaying = Player.currentSong && Player.currentSong.id === song.id;
                 html += `
@@ -320,11 +325,11 @@ const App = {
                         <div class="song-row-info">
                             <div class="song-row-thumb" style="background:${song.color}">♫</div>
                             <div class="song-row-text">
-                                <div class="song-row-title">${song.title}</div>
-                                <div class="song-row-artist">${song.artist}</div>
+                                <div class="song-row-title">${escapeHTML(song.title)}</div>
+                                <div class="song-row-artist">${escapeHTML(song.artist)}</div>
                             </div>
                         </div>
-                        <div class="song-row-album">${song.album}</div>
+                        <div class="song-row-album">${escapeHTML(song.album)}</div>
                         <div class="song-row-duration">${formatDuration(song.duration)}</div>
                         <div class="song-row-actions">
                             <button class="btn-icon-sm" data-action="remove-uploaded-song" data-id="${song.id}" title="Remove">
@@ -382,14 +387,22 @@ const App = {
         input.multiple = true;
         input.accept = 'audio/*';
         input.style.display = 'none';
+        let cleaned = false;
+        const cleanup = () => {
+            if (cleaned) return;
+            cleaned = true;
+            input.remove();
+        };
         input.addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
-            if (files.length === 0) return;
+            if (files.length === 0) { cleanup(); return; }
             this.processUploadedFiles(files);
-            input.remove();
+            cleanup();
         });
+        input.addEventListener('cancel', cleanup);
         document.body.appendChild(input);
         input.click();
+        setTimeout(cleanup, 60000);
     },
 
     async processUploadedFiles(files) {
@@ -408,6 +421,7 @@ const App = {
             });
             count++;
         }
+        invalidateSongCache();
         UI.toast(`Added ${count} song(s)`);
         Playlist.renderSidebar();
         if (this.currentView === 'uploads') this.renderUploads();
@@ -417,8 +431,9 @@ const App = {
     getAudioDuration(url) {
         return new Promise((resolve) => {
             const audio = new Audio();
-            audio.addEventListener('loadedmetadata', () => resolve(audio.duration || 0));
-            audio.addEventListener('error', () => resolve(0));
+            const timeout = setTimeout(() => { resolve(0); }, 5000);
+            audio.addEventListener('loadedmetadata', () => { clearTimeout(timeout); resolve(audio.duration || 0); });
+            audio.addEventListener('error', () => { clearTimeout(timeout); resolve(0); });
             audio.src = url;
         });
     },
@@ -435,8 +450,8 @@ const App = {
                 </div>
                 <div class="playlist-header-info">
                     <div class="playlist-header-type">Album</div>
-                    <h1 class="playlist-header-name">${album.name}</h1>
-                    <div class="playlist-header-desc">${album.artist} \u2022 ${album.year}</div>
+                    <h1 class="playlist-header-name">${escapeHTML(album.name)}</h1>
+                    <div class="playlist-header-desc">${escapeHTML(album.artist)} \u2022 ${album.year}</div>
                     <div class="playlist-header-meta">${songs.length} songs \u2022 ${formatDuration(songs.reduce((a, s) => a + s.duration, 0))}</div>
                 </div>
             </div>
@@ -447,7 +462,7 @@ const App = {
             </div>
         `;
         if (songs.length > 0) {
-            html += `<div class="song-row" style="pointer-events:none;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:4px;"><div class="song-row-index">#</div><div class="song-row-info" style="margin-left:8px;">TITLE</div><div class="song-row-duration">⏱</div></div>`;
+            html += `<div class="song-table-header"><div class="song-row" style="pointer-events:none;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:4px;"><div class="song-row-index">#</div><div class="song-row-info" style="margin-left:8px;">TITLE</div><div class="song-row-album">ALBUM</div><div class="song-row-duration">⏱</div></div></div>`;
             songs.forEach((song, i) => { html += UI.renderSongRow(song, i); });
         }
         content.innerHTML = html;
@@ -474,7 +489,7 @@ const App = {
     toggleNowPlaying() {
         const rp = document.getElementById('rightPanel');
         if (this.isMobile()) {
-            rp.classList.toggle('visible');
+            rp.classList.toggle('mobile-visible');
             return;
         }
         if (rp.classList.contains('visible')) {
@@ -488,6 +503,7 @@ const App = {
     toggleRightPanel() {
         const rp = document.getElementById('rightPanel');
         rp.classList.remove('visible');
+        rp.classList.remove('mobile-visible');
         if (!this.isMobile()) this.updateGridColumns();
     },
 

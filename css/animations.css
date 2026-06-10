@@ -46,10 +46,10 @@
     animation: barBounce 0.8s ease-in-out infinite;
 }
 
-.now-playing-bar span:nth-child(1) { animation-delay: 0s; }
-.now-playing-bar span:nth-child(2) { animation-delay: 0.2s; }
-.now-playing-bar span:nth-child(3) { animation-delay: 0.4s; }
-.now-playing-bar span:nth-child(4) { animation-delay: 0.1s; }
+.now-playing-bar span:nth-child(1) { height: 6px; animation-delay: 0s; }
+.now-playing-bar span:nth-child(2) { height: 10px; animation-delay: 0.2s; }
+.now-playing-bar span:nth-child(3) { height: 4px; animation-delay: 0.4s; }
+.now-playing-bar span:nth-child(4) { height: 8px; animation-delay: 0.1s; }
 
 @keyframes barBounce {
     0%, 100% { height: 4px; }

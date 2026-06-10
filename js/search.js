@@ -60,7 +60,7 @@ const Search = {
 
     renderResults(results, query) {
         const content = UI.$('#contentArea');
-        let html = `<h1 class="greeting-title">Search results for "${query}"</h1>`;
+        let html = `<h1 class="greeting-title">Search results for "${escapeHTML(query)}"</h1>`;
 
         if (results.songs.length > 0) {
             html += `<div class="section-header"><h2 class="section-title">Songs</h2></div>`;
@@ -75,11 +75,11 @@ const Search = {
             html += `<div class="card-grid small">`;
             results.artists.forEach(artist => {
                 html += `
-                    <div class="card" data-action="open-artist" data-artist="${artist.name}">
+                    <div class="card" data-action="open-artist" data-artist="${escapeHTML(artist.name)}">
                         <div class="card-cover round" style="background:${artist.color}">
                             <span>🎤</span>
                         </div>
-                        <div class="card-title">${artist.name}</div>
+                        <div class="card-title">${escapeHTML(artist.name)}</div>
                         <div class="card-subtitle">Artist</div>
                     </div>
                 `;
@@ -108,7 +108,7 @@ const Search = {
         if (!results.songs.length && !results.artists.length && !results.albums.length && !results.playlists.length) {
             html += `
                 <div style="text-align:center;padding:60px 0;color:var(--text-subdued);">
-                    <h2 style="margin-bottom:8px;">No results found for "${query}"</h2>
+                    <h2 style="margin-bottom:8px;">No results found for "${escapeHTML(query)}"</h2>
                     <p>Please check your spelling or try different keywords.</p>
                 </div>
             `;
@@ -118,8 +118,15 @@ const Search = {
     },
 
     browseCategory(categoryId) {
+        App.navigate('category/' + categoryId);
+    },
+
+    renderCategory(categoryId) {
         const category = CATEGORIES.find(c => c.id === categoryId);
-        if (!category) return;
+        if (!category) {
+            App.renderHome();
+            return;
+        }
 
         const songs = getAllSongs().filter(s => s.genre.toLowerCase() === category.name.toLowerCase());
         const content = UI.$('#contentArea');
@@ -130,22 +137,22 @@ const Search = {
                 </div>
                 <div class="playlist-header-info">
                     <div class="playlist-header-type">Category</div>
-                    <h1 class="playlist-header-name">${category.name}</h1>
-                    <div class="playlist-header-desc">Browse ${category.name} tracks</div>
+                    <h1 class="playlist-header-name">${escapeHTML(category.name)}</h1>
+                    <div class="playlist-header-desc">Browse ${escapeHTML(category.name)} tracks</div>
                 </div>
             </div>
         `;
 
         if (songs.length > 0) {
-            html += `<div class="section-header"><h2 class="section-title">Popular ${category.name} tracks</h2></div>`;
+            html += `<div class="section-header"><h2 class="section-title">Popular ${escapeHTML(category.name)} tracks</h2></div>`;
             songs.forEach((song, i) => {
                 html += UI.renderSongRow(song, i);
             });
         } else {
             html += `
                 <div style="text-align:center;padding:60px 0;color:var(--text-subdued);">
-                    <h2>No ${category.name} songs in the library yet</h2>
-                    <p>Add songs with the "${category.name}" genre to see them here.</p>
+                    <h2>No ${escapeHTML(category.name)} songs in the library yet</h2>
+                    <p>Add songs with the "${escapeHTML(category.name)}" genre to see them here.</p>
                 </div>
             `;
         }
