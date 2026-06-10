@@ -33,6 +33,7 @@
 @media (max-width: 900px) {
     .app-container {
         grid-template-columns: 1fr;
+        padding-bottom: 120px;
     }
 
     .sidebar {
@@ -125,6 +126,7 @@
     .app-container {
         padding: 0;
         gap: 0;
+        padding-bottom: 120px;
     }
 
     .main-content {
@@ -141,10 +143,12 @@
     }
 
     .player-bar {
+        display: flex;
         grid-template-columns: 1fr auto;
-        padding: 0 12px 56px;
+        padding: 8px 12px 56px;
         height: auto;
         min-height: 64px;
+        align-items: center;
     }
 
     .player-center {
@@ -245,6 +249,11 @@
         margin: 16px;
         max-height: calc(100vh - 32px);
     }
+
+    /* Fix: Toast above mobile nav */
+    .toast-container {
+        bottom: calc(64px + 56px + 16px);
+    }
 }
 
 /* ========== SMALL MOBILE (≤400px) ========== */
@@ -280,7 +289,7 @@
     }
 
     .player-bar {
-        padding: 0 8px 56px;
+        padding: 8px 8px 56px;
     }
 
     .player-song-info {
@@ -323,10 +332,6 @@
         font-size: 15px;
     }
 
-    .toast-container {
-        bottom: calc(64px + 56px + 16px);
-    }
-
     .player-controls {
         gap: 12px;
     }
@@ -345,8 +350,8 @@
 @media (hover: none) and (pointer: coarse) {
     .progress-knob {
         opacity: 1;
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
     }
 
     .progress-track {
@@ -355,8 +360,8 @@
 
     .volume-knob {
         opacity: 1;
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
     }
 
     .volume-track {
@@ -365,8 +370,8 @@
 
     .btn-ctrl {
         padding: 8px;
-        min-width: 36px;
-        min-height: 36px;
+        min-width: 40px;
+        min-height: 40px;
     }
 
     .btn-like-small {
@@ -394,5 +399,30 @@
     .card-play-btn {
         opacity: 1;
         transform: translateY(0);
+    }
+
+    /* Bigger touch targets on mobile */
+    .mobile-nav-item {
+        min-height: 44px;
+        padding: 6px 12px;
+    }
+
+    .hamburger-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .nav-item {
+        min-height: 44px;
+    }
+
+    .filter-chip {
+        min-height: 36px;
+        padding: 8px 16px;
+    }
+
+    .btn-icon-sm {
+        min-width: 36px;
+        min-height: 36px;
     }
 }
