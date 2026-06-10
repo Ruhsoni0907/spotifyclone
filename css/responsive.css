@@ -144,14 +144,32 @@
 
     .player-bar {
         display: flex;
-        grid-template-columns: 1fr auto;
+        flex-direction: column;
         padding: 8px 12px 56px;
         height: auto;
         min-height: 64px;
-        align-items: center;
+        gap: 4px;
+    }
+
+    .player-left {
+        width: 100%;
     }
 
     .player-center {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .player-controls {
+        display: none;
+    }
+
+    .progress-row {
+        width: 100%;
+    }
+
+    .time-label {
         display: none;
     }
 
@@ -165,7 +183,8 @@
     }
 
     .player-song-info {
-        max-width: 150px;
+        max-width: none;
+        flex: 1;
     }
 
     .greeting-title {
@@ -253,6 +272,17 @@
     /* Fix: Toast above mobile nav */
     .toast-container {
         bottom: calc(64px + 56px + 16px);
+    }
+
+    /* Progress bar visible and tappable on mobile */
+    .progress-track {
+        height: 6px;
+    }
+
+    .progress-knob {
+        opacity: 1;
+        width: 14px;
+        height: 14px;
     }
 }
 
